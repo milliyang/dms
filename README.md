@@ -64,4 +64,4 @@ Flask / InfluxDB / yfinance / SQLite
 
 ### Licence
 
-MIT License
+No License
