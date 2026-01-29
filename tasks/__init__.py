@@ -1,7 +1,23 @@
 """
 Maintenance Tasks
 
-Various maintenance tasks (incremental update, full sync, validation, repair).
+Abstract base and concrete tasks: incremental update, full sync, validation, repair.
+
+Classes:
+    MaintenanceTask  Abstract base: name, config, status, last_run_time, last_result; execute() abstract, run() wrapper.
+
+Subclasses (in other modules):
+    IncrementalUpdateTask  Fetch missing data from latest date per symbol; optional sync to backups.
+    FullSyncTask           Re-fetch full history for symbols and date range; optional sync to backups.
+    DataValidationTask     Read and validate integrity/price reasonableness; report issues.
+    DataRepairTask         Compare reader vs fetcher for recent range and repair gaps.
+
+MaintenanceTask interface:
+    .status -> str                    idle | running | completed | failed
+    .last_run_time -> Optional[datetime]
+    .last_result -> Optional[Dict]
+    .execute() -> Dict                Abstract: success, message, data_count, duration, error
+    .run() -> Dict                    Wrapper: sets status, tracks time, calls execute()
 """
 
 from abc import ABC, abstractmethod

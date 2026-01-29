@@ -1,7 +1,21 @@
 """
 Data Writer Manager
 
-Manages writer instances and provides unified interface.
+Manages underlying Writer instance (e.g. InfluxDB); unified write interface, incremental write, and latest-date query.
+
+Classes:
+    DataWriter  Writer manager
+
+DataWriter methods:
+    .set_writer(writer) -> None                     Set Writer instance
+    .writer -> Optional[Writer]                     Current Writer
+    .write_data(symbol, data, interval) -> bool     Write data (full overwrite for symbol+interval)
+    .write_data_incremental(symbol, data, interval) -> bool   Incremental write (append by timestamp)
+    .get_latest_date(symbol, interval) -> Optional[datetime]  Latest data date for symbol+interval
+    .clear_database() -> bool                       Clear current DB (dangerous)
+
+Config:
+    Constructor: writer_config e.g. {"type": "influxdb1", "host", "port", "database", ...}. Supports type="influxdb1"; connection created in _load_writer.
 """
 
 import logging

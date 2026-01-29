@@ -1,7 +1,20 @@
 """
-InfluxDB Reader
+InfluxDB 1.x Reader
 
-Read data from InfluxDB 1.x database with optimizations for backtesting.
+Read OHLCV from InfluxDB 1.x; optional LRU cache (TTL), symbol fallback (US. prefix / no prefix).
+
+Classes:
+    LRUCache        Simple LRU cache with TTL (key -> value, evict by access order and expiry)
+    InfluxDBReader  Reader implementation for InfluxDB 1.x
+
+InfluxDBReader:
+    Config: host, port, database, username, password; cache_enabled, cache_size, cache_ttl.
+    .connect() -> bool                                  Connect and create DB if not exists
+    .disconnect()                                       Close connection
+    .read_history(symbol, start_date, end_date, interval) -> Optional[DataFrame]  Query stock_data measurement
+
+Measurement/tags: stock_data, symbol, interval; fields: open, high, low, close, volume.
+Dependencies: influxdb (InfluxDBClient).
 """
 
 import logging

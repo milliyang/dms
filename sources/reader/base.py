@@ -1,7 +1,19 @@
 """
 Data Reader Base Class
 
-Abstract base class for reading data from databases.
+Abstract base for readers; subclasses must implement connect, disconnect, read_history. read_batch provided.
+
+Classes:
+    Reader  Abstract base class for data readers
+
+Reader interface:
+    .is_connected -> bool                               Connection status
+    .connect() -> bool                                  Abstract: establish connection
+    .disconnect()                                       Abstract: close connection
+    .read_history(symbol, start_date, end_date, interval) -> Optional[DataFrame]  Abstract: read OHLCV
+    .read_batch(symbols, start_date, end_date, interval) -> Dict[symbol, DataFrame]  Default: parallel read_history
+
+Context manager: with Reader(config) as r: ...
 """
 
 from abc import ABC, abstractmethod

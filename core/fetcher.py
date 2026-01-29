@@ -1,7 +1,20 @@
 """
 Data Fetcher Manager
 
-Manages multiple fetcher sources and provides unified interface.
+Manages multiple data sources (e.g. yfinance); unified fetch interface and primary fetcher selection.
+
+Classes:
+    DataFetcher  Fetcher manager
+
+DataFetcher methods:
+    .add_fetcher(name, fetcher) -> None            Register fetcher
+    .get_fetcher(name=None) -> Optional[Fetcher]   Get fetcher (None = primary)
+    .list_fetchers() -> list[str]                  List registered fetcher names
+    .primary -> Optional[Fetcher]                  Primary fetcher
+    .fetch_history(symbol, start, end, interval, fetcher_name=None) -> Optional[DataFrame]  Fetch history
+
+Config:
+    Constructor: fetchers_config e.g. {"yfinance": {"enabled": True, "rate_limit": 0.5, ...}}. Supports yfinance; futu placeholder not implemented.
 """
 
 import logging

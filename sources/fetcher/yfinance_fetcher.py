@@ -1,7 +1,17 @@
 """
 YFinance Data Fetcher
 
-Fetch historical stock data from Yahoo Finance using yfinance library.
+Fetch historical OHLCV from Yahoo Finance via yfinance; rate limiting, retries, and symbol normalization.
+
+Classes:
+    YFinanceFetcher  Fetcher implementation using yfinance
+
+YFinanceFetcher:
+    Config: enabled, rate_limit (seconds), retry_times. Symbol normalization: US.xxx -> xxx, HK.00700 -> 0700.HK.
+    .fetch_history(symbol, start_date, end_date, interval) -> Optional[DataFrame]  Fetch and validate/clean
+
+Dependencies:
+    yfinance. Interval mapping: 1d, 1h, 5m, 15m, 30m, 1wk, 1mo.
 """
 
 import logging

@@ -1,7 +1,21 @@
 """
 Master-Slave Mode Management
 
-Manages master-slave architecture, role detection, and communication.
+Node role (master/slave), master/slave URL resolution, status checks, and sync request/push.
+
+Classes:
+    MasterSlaveManager  Master-slave manager
+
+MasterSlaveManager methods:
+    .get_master_url() -> Optional[str]                     Master URL (for slave)
+    .get_slave_url(slave_name) -> Optional[str]            Slave URL by name (for master)
+    .check_master_status() -> Dict                         Check master status (for slave)
+    .check_slave_status(slave_name) -> Dict                Check slave status (for master)
+    .request_sync_from_master() -> Dict                    Slave: request sync from master
+    .sync_to_slave(slave_name, payload) -> Dict            Master: push data to slave
+
+Config:
+    Constructor: role ("master"|"slave"), master_config (for slave), slaves_config (for master).
 """
 
 import logging

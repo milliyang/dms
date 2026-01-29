@@ -1,7 +1,37 @@
 """
 DMS HTTP API
 
-RESTful API endpoints for DMS management.
+REST API Blueprint for DMS; prefix /api/dms. Requires global DMS instance set via set_dms_instance(instance).
+
+Functions:
+    set_dms_instance(instance)   Set global DMS instance (called by app startup)
+
+Endpoints (all under /api/dms):
+    GET  /status                  Node status (role, running, uptime, tasks_count)
+    GET  /nodes                  All nodes status (master + slaves)
+    GET  /sync/status             Sync status
+    GET  /sync/history            Sync history (query: backup_name, limit, offset)
+    POST /read/batch              Batch read (body: symbols, start_date, end_date, interval)
+    GET  /read/<symbol>           Read single symbol (query: start_date, end_date, interval)
+    GET  /symbol/<symbol>/info   Symbol latest date and record count
+    GET  /symbol/<symbol>/data   Symbol data (query: start_date, end_date, interval)
+    POST /tasks/trigger           Trigger one task (body: task_name)
+    POST /tasks/trigger-all       Trigger all tasks (body: task_type optional)
+    GET  /tasks                   Task list
+    GET  /tasks/<task_name>/status  Task status
+    POST /sync/trigger            Trigger sync (body: backup_name optional)
+    GET  /maintenance/log         Maintenance log (query: task_name, limit, offset)
+    GET  /slaves                  Slave list
+    GET  /slaves/<name>/status    Slave status
+    POST /slaves/<name>/sync      Sync to slave (body: symbols, interval optional)
+    POST /sync/request            Slave: request sync from master
+    GET  /master/status           Slave: master status
+    POST /export                  Export symbols to ZIP (body: symbols, interval, start_date, end_date)
+    GET  /export/symbol/<symbol>  Export single symbol CSV (query: interval, start_date, end_date)
+    GET  /exports                 List export files
+    GET  /exports/<filename>      Download export file
+    DELETE /exports/<filename>    Delete export file
+    POST /database/clear          Clear primary database (dangerous)
 """
 
 import logging
@@ -535,7 +565,7 @@ def export_data():
         abort(503, description="DMS not initialized")
     
     try:
-        data = request.get_json(silent=True)
+        data = request.get_json(silent=True) or {}
         if not data:
             abort(400, description="Request body is required")
         

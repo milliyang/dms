@@ -1,7 +1,20 @@
 """
 Data Exporter
 
-Export data from InfluxDB to CSV and ZIP files.
+Read from primary DB via DataReader and export to CSV/ZIP; single/multiple symbols and export directory management.
+
+Classes:
+    DataExporter  Data exporter
+
+DataExporter methods:
+    .export_symbol(symbol, interval, start_date, end_date) -> Optional[str]   Export one symbol to CSV; return path
+    .export_all_symbols(symbols, interval, start_date, end_date) -> Optional[str]  Export many to ZIP; return path
+    .list_exports() -> List[Dict]   List export dir (name, size, mtime)
+    .delete_export(filename) -> bool   Delete export file
+    .get_export_path(filename) -> Optional[Path]   Get export file path
+
+Config:
+    Constructor: reader, export_dir (default "run/exports").
 """
 
 import logging

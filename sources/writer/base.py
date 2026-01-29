@@ -1,7 +1,20 @@
 """
 Data Writer Base Class
 
-Abstract base class for writing data to databases.
+Abstract base for writers; subclasses must implement connect, disconnect, write_data, get_latest_date. write_data_incremental provided.
+
+Classes:
+    Writer  Abstract base class for data writers
+
+Writer interface:
+    .is_connected -> bool                               Connection status
+    .connect() -> bool                                  Abstract: establish connection
+    .disconnect()                                       Abstract: close connection
+    .write_data(symbol, data, interval) -> bool         Abstract: write full dataset (overwrite for symbol+interval)
+    .get_latest_date(symbol, interval) -> Optional[datetime]  Abstract: latest point for incremental
+    .write_data_incremental(symbol, data, interval) -> bool   Filter data.index > get_latest_date then write_data
+
+Context manager: with Writer(config) as w: ...
 """
 
 from abc import ABC, abstractmethod

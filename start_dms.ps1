@@ -20,5 +20,8 @@ Write-Host "Web Interface: http://localhost:11183" -ForegroundColor Cyan
 Write-Host "API Docs: http://localhost:11183/docs" -ForegroundColor Cyan
 Write-Host ""
 
+# Use a single .pycache directory under project root (PowerShell: $env, not export)
+$env:PYTHONPYCACHEPREFIX = "$PSScriptRoot\.pycache"
+
 # Start DMS service
 python app.py

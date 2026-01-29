@@ -1,7 +1,21 @@
 """
-InfluxDB Writer
+InfluxDB 1.x Writer
 
-Write data to InfluxDB 1.x database.
+Write OHLCV to InfluxDB 1.x; single-server or multi-server mode (write to all, primary = lowest latency).
+
+Classes:
+    InfluxDBWriter  Writer implementation for InfluxDB 1.x
+
+InfluxDBWriter:
+    Config: host, port, database, username, password; optional servers list for multi-server.
+    .connect() -> bool                                  Connect (single or multi); create DB if not exists; primary = fastest
+    .disconnect()                                       Close all connections
+    .write_data(symbol, data, interval) -> bool          Write points to all connected servers
+    .get_latest_date(symbol, interval) -> Optional[datetime]  MAX(time) from stock_data
+    .clear_database() -> bool                            DROP SERIES FROM stock_data (destructive)
+
+Measurement: stock_data; tags: symbol, interval; fields: open, high, low, close, volume.
+Dependencies: influxdb (InfluxDBClient).
 """
 
 import logging

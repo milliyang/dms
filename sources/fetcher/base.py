@@ -1,7 +1,19 @@
 """
 Data Fetcher Base Class
 
-Abstract base class for fetching historical data from external sources.
+Abstract base for fetchers; subclasses must implement fetch_history. Provides validate_data and clean_data.
+
+Classes:
+    Fetcher  Abstract base class for data fetchers
+
+Fetcher interface:
+    .enabled -> bool                                    Whether fetcher is enabled (from config)
+    .fetch_history(symbol, start_date, end_date, interval) -> Optional[DataFrame]  Abstract: fetch OHLCV
+    .validate_data(data) -> bool                        Check required columns and non-negative values
+    .clean_data(data) -> DataFrame                      Dedupe index, sort, drop all-NaN rows
+
+Contract:
+    fetch_history returns DataFrame with columns: Open, High, Low, Close, Volume; index = DatetimeIndex.
 """
 
 from abc import ABC, abstractmethod

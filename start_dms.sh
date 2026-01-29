@@ -24,5 +24,8 @@ echo "Web Interface: http://localhost:11183"
 echo "API Docs: http://localhost:11183/docs"
 echo ""
 
+# Use a single .pycache directory under project root (script already cd'd there)
+export PYTHONPYCACHEPREFIX="$(pwd)/.pycache"
+
 # Start DMS service
 python app.py

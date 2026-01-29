@@ -39,3 +39,6 @@ Thumbs.db
 *.pem
 *.key
 secrets/
+
+# Pycache
+.pycache/

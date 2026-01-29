@@ -1,7 +1,27 @@
 """
-Configuration Management
+DMS Configuration Management
 
-Load and validate DMS configuration from YAML files.
+Load and validate DMS config from YAML: dms.yaml, task.yaml, sync.yaml, and symbol lists from directories.
+
+Classes:
+    ServiceConfig      Service (host, port, log_level, log_dir, run_on_startup)
+    FetcherConfig      Fetcher (enabled, rate_limit, retry_times, initial_days)
+    PrimaryDBConfig    Primary DB (type, host, port, database, username, password, servers)
+    ReaderConfig       Reader (cache_enabled, cache_size, batch_size, max_workers)
+    BackupConfig       Backup node (name, type, host, port, database, enabled)
+    SyncConfig         Sync (default_mode, retry_*, performance)
+    MasterSlaveConfig  Master-slave (role, master_host, master_port, slaves, debug_mode)
+    DMSConfig          Full DMS config (aggregates above)
+
+Functions:
+    load_config(config_path: Optional[str] = None) -> DMSConfig  Load config from YAML
+    get_config() -> DMSConfig                                    Get global config singleton
+
+Config sources:
+    - dms.yaml: service, fetchers, primary, reader, backups, sync, master_slave
+    - task.yaml: tasks (name, type, symbols_file/symbols_dir, trigger)
+    - sync.yaml: sync (default_mode, retry_*, performance)
+    - symbols_dir: all *.yaml files under directory, each with symbols list
 """
 
 import yaml

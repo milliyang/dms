@@ -1,7 +1,12 @@
 """
 Full Sync Task
 
-Re-fetch all historical data for specified symbols and time range.
+Re-fetch full history for configured symbols and date range; write and optionally sync to backups.
+
+Classes:
+    FullSyncTask  MaintenanceTask implementation for full sync
+
+Config (in config): symbols, interval (default "1d"), start_date, end_date (or initial_days default 3650), sync_backups (default False).
 """
 
 import logging

@@ -57,7 +57,9 @@ Docker 相关配置文件都放在此目录下。
 1. 在 `config/dms.yaml` 中配置外部 InfluxDB：
    ```yaml
    primary:
-     host: "172.19.202.120"  # 外部 InfluxDB 地址
+     host: "172.19.202.120"  # 外部 InfluxDB IP 地址（推荐）
+     # 或使用主机名（需要在 docker-compose.external-db.yml 中添加 extra_hosts 映射）
+     # host: "host.docker.internal" 宿主机器
      port: 8086
      database: "dms_data"
    ```

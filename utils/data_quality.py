@@ -1,7 +1,13 @@
 """
 Data Quality Utilities
 
-Helper functions for checking data quality and continuity.
+Check continuity (gaps) and compute a quality score from validation and continuity results.
+
+Functions:
+    check_data_continuity(symbol, data, interval, max_gap_days) -> Dict
+        Detect gaps in datetime index; skip weekends for 1d. Returns is_continuous, gaps, total_gaps, data_points, date_range, message.
+    calculate_data_quality_score(data, validation_result, continuity_result) -> float
+        Score 0–100: deduct for missing values, gaps, and validation issues.
 """
 
 import logging

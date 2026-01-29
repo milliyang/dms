@@ -1,5 +1,6 @@
 """
-Web Interface
+DMS Web Interface
 
-FastAPI application and web UI for DMS management.
+Flask Blueprint and static assets for DMS: REST API (web.api) and web UI (static).
 """
+

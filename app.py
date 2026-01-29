@@ -1,7 +1,21 @@
 """
 DMS Flask Application
 
-Independent HTTP service for DMS management.
+Standalone HTTP service for DMS: loads config, creates DMS instance, registers API Blueprint and static files.
+
+Responsibilities:
+    - Add project root to sys.path for package imports
+    - Load .env via dotenv
+    - Create Flask app, CORS, SECRET_KEY
+    - Register Blueprint from dms.web.api at /api/dms
+    - Serve static files from web/static and index at /
+    - startup(): load_config(), create DMS(config), dms.start(), set_dms_instance(dms)
+
+Routes:
+    GET /   Serve index.html from web/static
+
+Entry:
+    python -m dms.app or python app.py: runs app.run(host, port) after startup(). Port from config.service.port (default 11183).
 """
 
 import sys

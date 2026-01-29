@@ -1,7 +1,12 @@
 """
 Data Validation Task
 
-Check data integrity, price reasonableness, and generate validation reports.
+Read recent data per symbol, check integrity and price reasonableness, report issues (no_data, missing_cols, price_spike).
+
+Classes:
+    DataValidationTask  MaintenanceTask implementation; read-only, uses DataReader only
+
+Config (in config): symbols, interval (default "1d"), check_range (default 30 days), max_price_change (default 0.2).
 """
 
 import logging

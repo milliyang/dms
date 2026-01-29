@@ -1,7 +1,14 @@
 """
 Data Fetchers
 
-Fetch historical data from external sources (YFinance, Futu, etc.)
+Fetch historical OHLCV data from external sources; abstract base Fetcher and YFinance implementation.
+
+Classes:
+    Fetcher           Abstract base: fetch_history, validate_data, clean_data
+    YFinanceFetcher   Yahoo Finance via yfinance; rate limit, retry, symbol normalization (US./HK.)
+
+Exports:
+    Fetcher, YFinanceFetcher
 """
 
 from .base import Fetcher

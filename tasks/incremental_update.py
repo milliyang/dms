@@ -1,7 +1,13 @@
 """
 Incremental Update Task
 
-Check latest date for each symbol and fetch missing data.
+Per-symbol: get latest date from writer, fetch from fetcher from (latest+1) to now, write and optionally sync to backups.
+
+Classes:
+    IncrementalUpdateTask  MaintenanceTask implementation for incremental update
+
+Config (in config): symbols, interval (default "1d"), sync_backups (default False), initial_days (default 1825).
+Dependencies: DataFetcher, DataWriter, optional SyncManager; utils.data_quality.check_data_continuity.
 """
 
 import logging

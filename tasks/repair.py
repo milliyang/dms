@@ -1,7 +1,13 @@
 """
 Data Repair Task
 
-Automatically repair known issues by comparing multiple data sources.
+For each symbol: read recent range from reader, fetch same range from fetcher, fill gaps and overwrite invalid rows, write back; optional sync to backups.
+
+Classes:
+    DataRepairTask  MaintenanceTask implementation for repair
+
+Config (in config): symbols, interval (default "1d"), repair_range (default 7 days).
+Dependencies: DataFetcher, DataWriter, DataReader; optional SyncManager.
 """
 
 import logging

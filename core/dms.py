@@ -1,7 +1,33 @@
 """
-DMS Main Class
+DMS Main Class (Data Maintenance Service)
 
-Main class that integrates all components.
+Integrates config, fetcher, writer, reader, sync, scheduler, and master-slave; provides unified entry and HTTP API.
+
+Classes:
+    DMS  Data maintenance service main class
+
+Functions:
+    setup_logging(log_dir, log_level)  Configure logging (file + console, rotating)
+
+DMS main methods:
+    .start() -> None                                   Start service (scheduler + optional run-once incremental)
+    .stop() -> None                                    Stop service
+    .is_running() -> bool                              Whether running
+    .get_uptime() -> int                               Uptime in seconds
+    .get_all_symbols() -> List[str]                    All symbols from tasks
+    .get_tasks() -> List[Dict]                         Task list
+    .get_task_status(task_name) -> Dict                Single task status
+    .trigger_task(task_name) -> Dict                   Manually trigger one task
+    .trigger_all_tasks(task_type=None) -> Dict         Manually trigger all (optional filter by type)
+    .read_history(symbol, start, end, interval) -> DataFrame  Read history
+    .read_batch(symbols, start, end, interval) -> Dict          Batch read
+    .get_sync_status() -> Dict                         Sync status
+    .trigger_sync(backup_name=None) -> Dict            Trigger sync (optional backup name)
+    .get_slaves() / .get_slave_status(name)             Slave list / status
+    .sync_to_slave(slave_name, ...)                    Sync to given slave
+    .get_master_status() / .request_sync_from_master() Master status / request sync from master (slave)
+    .get_maintenance_log(...)                          Maintenance log
+    .clear_database() -> Dict                          Clear primary DB (dangerous)
 """
 
 import logging

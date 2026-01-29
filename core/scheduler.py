@@ -1,7 +1,25 @@
 """
 Maintenance Scheduler
 
-Task scheduling and execution management.
+Triggers maintenance tasks (incremental update, full sync, validation) by Cron or Interval; runs in background thread.
+
+Classes:
+    MaintenanceScheduler  Maintenance scheduler
+
+MaintenanceScheduler methods:
+    .start() -> None                           Start scheduler loop
+    .stop() -> None                            Stop scheduler
+    .trigger_task(task_name) -> Dict           Manually trigger one task
+    .get_task_status(task_name) -> Dict        Task status (idle/running/completed/failed)
+    .get_tasks() -> List[Dict]                 Task config list
+
+Task types:
+    incremental  Incremental update (fetch from latest timestamp and write)
+    full_sync    Full sync (history range from task config)
+    validation   Data validation (read-only)
+
+Dependencies:
+    croniter required for Cron expressions; Cron triggers disabled if not installed.
 """
 
 import logging
@@ -347,9 +365,13 @@ class MaintenanceScheduler:
         task = self._tasks[task_name]
         stats = self.maintenance_log.get_task_stats(task_name)
         
+        # Use lock to ensure thread-safe status reading
+        with self._lock:
+            status = self._task_status.get(task_name, "idle")
+        
         return {
             "name": task_name,
-            "status": self._task_status.get(task_name, "idle"),
+            "status": status,
             "last_run_time": task.last_run_time.isoformat() if task.last_run_time else None,
             "last_result": task.last_result,
             "stats": stats,
@@ -358,6 +380,10 @@ class MaintenanceScheduler:
     def get_tasks(self) -> List[Dict[str, Any]]:
         """Get all tasks"""
         result = []
+        # Use lock to ensure thread-safe status reading
+        with self._lock:
+            task_status_copy = self._task_status.copy()
+        
         for name, task in self._tasks.items():
             # Find task config to get schedule info
             task_config = None
@@ -417,7 +443,7 @@ class MaintenanceScheduler:
             
             result.append({
                 "name": name,
-                "status": self._task_status.get(name, "idle"),
+                "status": task_status_copy.get(name, "idle"),
                 "last_run_time": task.last_run_time.isoformat() if task.last_run_time else None,
                 "schedule": schedule_info,
             })
