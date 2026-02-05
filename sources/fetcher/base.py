@@ -12,8 +12,8 @@ Fetcher interface:
     .validate_data(data) -> bool                        Check required columns and non-negative values
     .clean_data(data) -> DataFrame                      Dedupe index, sort, drop all-NaN rows
 
-Contract:
-    fetch_history returns DataFrame with columns: Open, High, Low, Close, Volume; index = DatetimeIndex.
+Fetcher features:
+    - fetch_history returns DataFrame with columns: Open, High, Low, Close, Volume; index = DatetimeIndex
 """
 
 from abc import ABC, abstractmethod

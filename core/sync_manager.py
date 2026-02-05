@@ -1,18 +1,18 @@
 """
-Sync Manager
+Sync manager: sync primary DB to multiple backup nodes; incremental (by latest timestamp), full, and realtime write.
 
-Sync primary DB to multiple backup nodes; incremental (by latest timestamp), full, and realtime write sync.
+Used for: DMS sync trigger and realtime write path; backups support InfluxDB; connections created lazily.
 
 Classes:
-    SyncManager  Sync manager
+    SyncManager  Sync primary to backup nodes
 
 SyncManager methods:
     .sync_incremental(backup_name, symbol=None, interval) -> bool   Incremental sync to one backup
-    .sync_to_all_backups(symbol=None, interval, ...) -> Dict        Sync to all backups (incremental/full)
-    .sync_realtime(backup_name, symbol, data, interval) -> bool      Realtime write one chunk to backup (parallel with primary write)
+    .sync_to_all_backups(symbol=None, interval, ...) -> Dict       Sync to all backups (incremental/full)
+    .sync_realtime(backup_name, symbol, data, interval) -> bool    Realtime write one chunk to backup (parallel with primary)
 
-Config:
-    Constructor: primary_writer, primary_reader, backups (list of backup configs), sync_config (retry, concurrency, etc.). Backups support InfluxDB; connections created lazily.
+SyncManager features:
+    - Constructor: primary_writer, primary_reader, backups (list of backup configs), sync_config (retry, concurrency)
 """
 
 import logging

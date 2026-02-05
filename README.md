@@ -4,7 +4,7 @@ Standalone data maintenance service for fetching, maintaining, syncing, and back
 
 > Independent project; does not depend on `zuilow`. Can be deployed and run on its own.
 
-🚀 ***Sub-project of ZuiLow** all-in-one trading platform. Stay tuned!*
+Sub-project of **ZuiLow** all-in-one trading platform.
 
 ---
 
@@ -47,10 +47,7 @@ pip install -r requirements.txt
 |----------|-------------|
 | [Doc index](doc/README.md) | Index of all documentation |
 | [Architecture](doc/architecture.md) | System architecture overview |
-| [First run](doc/first_run_guide.md) | **How to trigger the first full update** ⭐ |
 | [Data quality](doc/data_quality.md) | Auto-repair and data quality |
-| [Export guide](doc/export_guide.md) | Export data to CSV/ZIP |
-| [Debug mode](doc/debug_mode_guide.md) | Debug mode for quick testing |
 | [API reference](doc/api_reference.md) | HTTP API documentation |
 | [Config](config/) | Config files (dms.yaml, task.yaml, sync.yaml) |
 | [Sync strategy](doc/sync_strategy.md) | Sync design and strategy |

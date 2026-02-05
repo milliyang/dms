@@ -1,21 +1,14 @@
 """
-DMS Flask Application
+DMS Flask application: standalone HTTP service; loads config, creates DMS, registers API and static files.
 
-Standalone HTTP service for DMS: loads config, creates DMS instance, registers API Blueprint and static files.
-
-Responsibilities:
-    - Add project root to sys.path for package imports
-    - Load .env via dotenv
-    - Create Flask app, CORS, SECRET_KEY
-    - Register Blueprint from dms.web.api at /api/dms
-    - Serve static files from web/static and index at /
-    - startup(): load_config(), create DMS(config), dms.start(), set_dms_instance(dms)
-
-Routes:
-    GET /   Serve index.html from web/static
+Used for: running DMS as a web service (default port 11183).
 
 Entry:
-    python -m dms.app or python app.py: runs app.run(host, port) after startup(). Port from config.service.port (default 11183).
+    python -m dms.app or python app.py: startup() loads config, creates DMS(config), dms.start(), set_dms_instance(dms); then app.run(host, port). Port from config.service.port (default 11183).
+
+Features:
+    - Adds project root to sys.path; loads .env via dotenv
+    - Registers Blueprint from dms.web.api at /api/dms; serves static from web/static; GET / serves index.html
 """
 
 import sys
@@ -30,11 +23,13 @@ _parent_dir = _project_root.parent
 if str(_parent_dir) not in sys.path:
     sys.path.insert(0, str(_parent_dir))
 
-from flask import Flask
+from flask import Flask, request, jsonify, redirect, send_from_directory
 from flask_cors import CORS
+from flask_login import login_user, logout_user, current_user, login_required
 from dotenv import load_dotenv
 
 from dms.web.api import bp as api_bp, set_dms_instance
+from dms.web.auth import init_login_manager, authenticate
 from dms.core.config import load_config
 
 # Load environment variables
@@ -54,9 +49,14 @@ _dms_instance = None
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or os.urandom(24).hex()
+# Different cookie name so zuilow and ppt can run in same browser without logging each other out
+app.config['SESSION_COOKIE_NAME'] = 'dms_session'
 
 # Initialize CORS
 CORS(app, supports_credentials=True)
+
+# Auth (admin only, ref zuilow)
+init_login_manager(app)
 
 # Register API Blueprint
 app.register_blueprint(api_bp, url_prefix='/api/dms')
@@ -68,9 +68,50 @@ if static_dir.exists():
     app.static_url_path = '/static'
 
 
+@app.route("/login")
+def login_page():
+    """Login page"""
+    if current_user.is_authenticated:
+        return redirect("/")
+    return send_from_directory(static_dir, "login.html")
+
+
+@app.route("/api/login", methods=["POST"])
+def api_login():
+    """Login API"""
+    data = request.json or {}
+    username = (data.get("username") or "").strip()
+    password = data.get("password", "")
+    user = authenticate(username, password)
+    if user:
+        login_user(user)
+        return jsonify({"status": "ok", "user": {"username": user.username, "role": user.role}})
+    return jsonify({"error": "Invalid username or password"}), 401
+
+
+@app.route("/api/logout", methods=["POST"])
+def api_logout():
+    """Logout API"""
+    logout_user()
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/user")
+def api_user():
+    """Current user (for frontend)"""
+    if current_user.is_authenticated:
+        return jsonify({
+            "authenticated": True,
+            "username": current_user.username,
+            "role": current_user.role,
+        })
+    return jsonify({"authenticated": False})
+
+
 @app.route("/")
+@login_required
 def index():
-    """Serve main page"""
+    """Serve main page (login required)"""
     index_file = static_dir / "index.html"
     if index_file.exists():
         with open(index_file, "r", encoding="utf-8") as f:

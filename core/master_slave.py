@@ -1,7 +1,7 @@
 """
-Master-Slave Mode Management
+Master-slave mode: node role (master/slave), URL resolution, status checks, sync request/push.
 
-Node role (master/slave), master/slave URL resolution, status checks, and sync request/push.
+Used for: DMS slave/master endpoints; role from config; master_config for slave, slaves_config for master.
 
 Classes:
     MasterSlaveManager  Master-slave manager
@@ -14,8 +14,8 @@ MasterSlaveManager methods:
     .request_sync_from_master() -> Dict                    Slave: request sync from master
     .sync_to_slave(slave_name, payload) -> Dict            Master: push data to slave
 
-Config:
-    Constructor: role ("master"|"slave"), master_config (for slave), slaves_config (for master).
+MasterSlaveManager features:
+    - Constructor: role ("master"|"slave"), master_config (for slave), slaves_config (for master)
 """
 
 import logging

@@ -1,25 +1,21 @@
 """
-Maintenance Scheduler
+Maintenance scheduler: triggers maintenance tasks (incremental, full_sync, validation) by cron or interval; background thread.
 
-Triggers maintenance tasks (incremental update, full sync, validation) by Cron or Interval; runs in background thread.
+Used for: DMS.start() starts scheduler; tasks run on schedule or via trigger_task.
 
 Classes:
-    MaintenanceScheduler  Maintenance scheduler
+    MaintenanceScheduler  Maintenance task scheduler
 
 MaintenanceScheduler methods:
     .start() -> None                           Start scheduler loop
     .stop() -> None                            Stop scheduler
     .trigger_task(task_name) -> Dict           Manually trigger one task
     .get_task_status(task_name) -> Dict        Task status (idle/running/completed/failed)
-    .get_tasks() -> List[Dict]                 Task config list
+    .get_tasks() -> List[Dict]                  Task config list
 
-Task types:
-    incremental  Incremental update (fetch from latest timestamp and write)
-    full_sync    Full sync (history range from task config)
-    validation   Data validation (read-only)
-
-Dependencies:
-    croniter required for Cron expressions; Cron triggers disabled if not installed.
+MaintenanceScheduler features:
+    - Task types: incremental (fetch from latest and write), full_sync (history from task config), validation (read-only)
+    - croniter required for cron triggers; cron disabled if not installed
 """
 
 import logging
@@ -348,6 +344,28 @@ class MaintenanceScheduler:
             "status": "running",
             "task_name": task_name,
         }
+
+    def _last_run_time_for_task(self, task_name: str) -> Optional[str]:
+        """Last run time: from DB (persistent) first, else in-memory task. ISO string or None."""
+        db_time = self.maintenance_log.get_last_run_time_iso(task_name)
+        if db_time:
+            return db_time
+        task = self._tasks.get(task_name)
+        if task and task.last_run_time:
+            return task.last_run_time.isoformat()
+        return None
+
+    def _status_for_task(self, task_name: str) -> str:
+        """Resolve status from DB first (running/completed/failed), else in-memory, so refresh shows correct state."""
+        last_run = self.maintenance_log.get_last_run(task_name)
+        if last_run:
+            s = last_run.get("status")
+            if s == "running":
+                return "running"
+            if s in ("completed", "failed"):
+                return s
+        with self._lock:
+            return self._task_status.get(task_name, "idle")
     
     def get_task_status(self, task_name: str) -> Dict[str, Any]:
         """
@@ -365,14 +383,16 @@ class MaintenanceScheduler:
         task = self._tasks[task_name]
         stats = self.maintenance_log.get_task_stats(task_name)
         
-        # Use lock to ensure thread-safe status reading
-        with self._lock:
-            status = self._task_status.get(task_name, "idle")
+        # Status from DB when last run is running/completed/failed, so refresh shows correct state
+        status = self._status_for_task(task_name)
+        
+        # Prefer last_run_time from DB (persistent); fallback to in-memory task
+        last_run_time = self._last_run_time_for_task(task_name)
         
         return {
             "name": task_name,
             "status": status,
-            "last_run_time": task.last_run_time.isoformat() if task.last_run_time else None,
+            "last_run_time": last_run_time,
             "last_result": task.last_result,
             "stats": stats,
         }
@@ -380,10 +400,6 @@ class MaintenanceScheduler:
     def get_tasks(self) -> List[Dict[str, Any]]:
         """Get all tasks"""
         result = []
-        # Use lock to ensure thread-safe status reading
-        with self._lock:
-            task_status_copy = self._task_status.copy()
-        
         for name, task in self._tasks.items():
             # Find task config to get schedule info
             task_config = None
@@ -441,10 +457,19 @@ class MaintenanceScheduler:
                     if interval:
                         schedule_info = f"Every {interval}"
             
+            # Notes from task config (e.g. "US market close + 3h (yfinance delay)")
+            notes_raw = task_config.get("notes", []) if task_config else []
+            notes = " / ".join(notes_raw) if isinstance(notes_raw, list) else (notes_raw or "")
+
+            # Status from DB when last run is running/completed/failed, so refresh shows correct state
+            status = self._status_for_task(name)
+            # Prefer last_run_time from DB (persistent); fallback to in-memory task
+            last_run_time = self._last_run_time_for_task(name)
             result.append({
                 "name": name,
-                "status": task_status_copy.get(name, "idle"),
-                "last_run_time": task.last_run_time.isoformat() if task.last_run_time else None,
+                "status": status,
+                "last_run_time": last_run_time,
                 "schedule": schedule_info,
+                "notes": notes,
             })
         return result

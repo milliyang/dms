@@ -17,6 +17,8 @@ services:
       - DMS_PORT=${DMS_PORT:-11183}
       - DMS_LOG_LEVEL=${DMS_LOG_LEVEL:-INFO}
       - DMS_LOG_DIR=/app/dms/run/logs
+      - DMS_API_KEY=${DMS_API_KEY:-}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-change-in-production}
       - WAIT_FOR_INFLUXDB=true
       - INFLUXDB_HOST=influxdb
       - INFLUXDB_PORT=8086

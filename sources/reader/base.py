@@ -6,7 +6,7 @@ Abstract base for readers; subclasses must implement connect, disconnect, read_h
 Classes:
     Reader  Abstract base class for data readers
 
-Reader interface:
+Reader methods:
     .is_connected -> bool                               Connection status
     .connect() -> bool                                  Abstract: establish connection
     .disconnect()                                       Abstract: close connection

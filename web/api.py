@@ -1,7 +1,7 @@
 """
-DMS HTTP API
+DMS HTTP API: REST Blueprint for DMS; prefix /api/dms; requires global DMS instance set via set_dms_instance.
 
-REST API Blueprint for DMS; prefix /api/dms. Requires global DMS instance set via set_dms_instance(instance).
+Used for: web UI and server-to-server calls (e.g. zuilow /api/market/quote); auth via session or X-API-Key.
 
 Functions:
     set_dms_instance(instance)   Set global DMS instance (called by app startup)
@@ -13,6 +13,7 @@ Endpoints (all under /api/dms):
     GET  /sync/history            Sync history (query: backup_name, limit, offset)
     POST /read/batch              Batch read (body: symbols, start_date, end_date, interval)
     GET  /read/<symbol>           Read single symbol (query: start_date, end_date, interval)
+    GET  /symbols                 All symbols from tasks (cached; query: ttl_seconds optional)
     GET  /symbol/<symbol>/info   Symbol latest date and record count
     GET  /symbol/<symbol>/data   Symbol data (query: start_date, end_date, interval)
     POST /tasks/trigger           Trigger one task (body: task_name)
@@ -34,15 +35,38 @@ Endpoints (all under /api/dms):
     POST /database/clear          Clear primary database (dangerous)
 """
 
+import os
 import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from flask import Blueprint, jsonify, request, abort, send_file
 import pandas as pd
 
+from flask_login import current_user
+
 logger = logging.getLogger(__name__)
 
 bp = Blueprint('dms_api', __name__)
+
+# Server-to-server auth: X-API-Key header (e.g. zuilow calling DMS). Set DMS_API_KEY in env.
+DMS_API_KEY = os.getenv("DMS_API_KEY", "").strip()
+
+
+def _check_api_key() -> bool:
+    """Allow request if X-API-Key matches DMS_API_KEY (server-to-server)."""
+    if not DMS_API_KEY:
+        return False
+    key = request.headers.get("X-API-Key", "").strip()
+    return key == DMS_API_KEY
+
+
+@bp.before_request
+def require_login():
+    """Require login or valid X-API-Key for all DMS API routes."""
+    if _check_api_key():
+        return None  # allow request
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
 
 # Global instances (will be set by app)
 _dms_instance = None
@@ -118,12 +142,16 @@ def read_batch():
         start_date_str = data.get("start_date")
         end_date_str = data.get("end_date")
         interval = data.get("interval", "1d")
+        as_of_str = data.get("as_of")  # optional: cap data at sim time (ISO datetime)
         
         if not symbols or not start_date_str or not end_date_str:
             abort(400, description="symbols, start_date, and end_date are required")
         
-        start_date = datetime.fromisoformat(start_date_str)
-        end_date = datetime.fromisoformat(end_date_str)
+        start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
+        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+        if as_of_str:
+            as_of = datetime.fromisoformat(as_of_str.replace("Z", "+00:00"))
+            end_date = min(end_date, as_of)
         
         results = _dms_instance.read_batch(symbols, start_date, end_date, interval)
         
@@ -142,6 +170,24 @@ def read_batch():
         
     except Exception as e:
         logger.error(f"Error reading batch data: {e}", exc_info=True)
+        abort(500, description=str(e))
+
+
+@bp.route("/symbols", methods=["GET"])
+def get_symbols():
+    """
+    Get all symbols (from task config). Cached in-memory for fast repeated calls.
+    Query: ttl_seconds (optional) override cache TTL.
+    Returns: {"symbols": ["US.AAPL", ...]}
+    """
+    if _dms_instance is None:
+        abort(503, description="DMS not initialized")
+    try:
+        ttl = request.args.get("ttl_seconds", type=int)
+        symbols = _dms_instance.get_all_symbols_cached(ttl_seconds=ttl)
+        return jsonify({"symbols": symbols})
+    except Exception as e:
+        logger.error("Error getting symbols: %s", e, exc_info=True)
         abort(500, description=str(e))
 
 

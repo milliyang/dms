@@ -1,7 +1,7 @@
 """
-DMS Main Class (Data Maintenance Service)
+DMS main class: integrates config, fetcher, writer, reader, sync, scheduler, master-slave; unified entry and HTTP API.
 
-Integrates config, fetcher, writer, reader, sync, scheduler, and master-slave; provides unified entry and HTTP API.
+Used for: app startup creates DMS(config), dms.start(); web API and zuilow call into this instance.
 
 Classes:
     DMS  Data maintenance service main class
@@ -9,7 +9,7 @@ Classes:
 Functions:
     setup_logging(log_dir, log_level)  Configure logging (file + console, rotating)
 
-DMS main methods:
+DMS methods:
     .start() -> None                                   Start service (scheduler + optional run-once incremental)
     .stop() -> None                                    Stop service
     .is_running() -> bool                              Whether running
@@ -28,10 +28,15 @@ DMS main methods:
     .get_master_status() / .request_sync_from_master() Master status / request sync from master (slave)
     .get_maintenance_log(...)                          Maintenance log
     .clear_database() -> Dict                          Clear primary DB (dangerous)
+
+DMS features:
+    - Config from YAML; fetcher/writer/reader/sync/scheduler/master_slave created from config
+    - Scheduler runs incremental/full_sync/validation by cron or interval
 """
 
 import logging
 import logging.handlers
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -230,6 +235,11 @@ class DMS:
         # Check database health before starting
         self._check_database_health()
         
+        # Cache for get_all_symbols (API /symbols): (list, timestamp)
+        self._symbols_cache: Optional[List[str]] = None
+        self._symbols_cache_ts: float = 0.0
+        self._symbols_cache_ttl: int = int(os.getenv("DMS_SYMBOLS_CACHE_TTL", "300"))  # seconds
+        
         logger.info(f"DMS initialized (role: {self.role})")
     
     def get_all_symbols(self) -> List[str]:
@@ -251,6 +261,19 @@ class DMS:
                         all_symbols.append(symbol)
         
         return all_symbols
+    
+    def get_all_symbols_cached(self, ttl_seconds: Optional[int] = None) -> List[str]:
+        """
+        Get all symbols with in-memory cache for fast repeated calls (e.g. GET /api/dms/symbols).
+        Uses DMS_SYMBOLS_CACHE_TTL env (default 300s); pass ttl_seconds to override.
+        """
+        ttl = ttl_seconds if ttl_seconds is not None else self._symbols_cache_ttl
+        now = time.time()
+        if self._symbols_cache is not None and (now - self._symbols_cache_ts) < ttl:
+            return self._symbols_cache
+        self._symbols_cache = self.get_all_symbols()
+        self._symbols_cache_ts = now
+        return self._symbols_cache
     
     @property
     def is_running(self) -> bool:

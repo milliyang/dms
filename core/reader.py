@@ -1,7 +1,7 @@
 """
-Data Reader Manager
+Data reader manager: manages underlying Reader (e.g. InfluxDB); unified read interface and connection state.
 
-Manages underlying Reader instance (e.g. InfluxDB); unified read interface and connection state.
+Used for: DMS read_history/read_batch; supports type="influxdb1" from db_config.
 
 Classes:
     DataReader  Reader manager
@@ -10,10 +10,10 @@ DataReader methods:
     .set_reader(reader) -> None                            Set Reader instance
     .reader -> Optional[Reader]                            Current Reader
     .read_history(symbol, start_date, end_date, interval) -> Optional[DataFrame]   Read history for one symbol
-    .read_batch(symbols, start_date, end_date, interval) -> Dict[str, DataFrame]  Batch read
+    .read_batch(symbols, start_date, end_date, interval) -> Dict[str, DataFrame]   Batch read
 
-Config:
-    Constructor: reader_config (cache, batch size, etc.), db_config (type, host, port, database, etc.). Supports type="influxdb1".
+DataReader features:
+    - Constructor: reader_config (cache, batch size), db_config (type, host, port, database); type="influxdb1"
 """
 
 import logging

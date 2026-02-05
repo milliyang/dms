@@ -1,7 +1,7 @@
 """
-DMS Configuration Management
+DMS configuration: load and validate config from YAML (dms.yaml, task.yaml, sync.yaml) and symbol directories.
 
-Load and validate DMS config from YAML: dms.yaml, task.yaml, sync.yaml, and symbol lists from directories.
+Used for: app and DMS constructor; load_config() once at startup, get_config() for singleton.
 
 Classes:
     ServiceConfig      Service (host, port, log_level, log_dir, run_on_startup)
@@ -17,11 +17,11 @@ Functions:
     load_config(config_path: Optional[str] = None) -> DMSConfig  Load config from YAML
     get_config() -> DMSConfig                                    Get global config singleton
 
-Config sources:
+DMSConfig features:
     - dms.yaml: service, fetchers, primary, reader, backups, sync, master_slave
     - task.yaml: tasks (name, type, symbols_file/symbols_dir, trigger)
     - sync.yaml: sync (default_mode, retry_*, performance)
-    - symbols_dir: all *.yaml files under directory, each with symbols list
+    - symbols_dir: all *.yaml under directory, each with symbols list
 """
 
 import yaml

@@ -14,7 +14,8 @@ Writer interface:
     .get_latest_date(symbol, interval) -> Optional[datetime]  Abstract: latest point for incremental
     .write_data_incremental(symbol, data, interval) -> bool   Filter data.index > get_latest_date then write_data
 
-Context manager: with Writer(config) as w: ...
+Writer features:
+    - Context manager: with Writer(config) as w: ...
 """
 
 from abc import ABC, abstractmethod

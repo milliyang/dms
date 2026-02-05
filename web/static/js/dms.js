@@ -2,12 +2,41 @@
  * DMS Frontend JavaScript
  */
 
+// Footer time: Real Time = browser (UTC/HKT). Layout/font match ZuiLow/PPT.
+var FOOTER_TIME_LABEL_REAL = 'Real_ Time:';
+
+function formatInTZ(d, tz) {
+    if (typeof d === 'string') d = new Date(d);
+    var opts = { timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    var parts = new Intl.DateTimeFormat('en-CA', opts).formatToParts(d);
+    var get = function(k) { return (parts.find(function(p) { return p.type === k; }) || {}).value || ''; };
+    var y = get('year');
+    var m = String(parseInt(get('month'), 10)).padStart(2, '0');
+    var day = String(parseInt(get('day'), 10)).padStart(2, '0');
+    var h = get('hour');
+    var min = get('minute');
+    var s = get('second');
+    return y + '/' + m + '/' + day + ' ' + h + ':' + min + ':' + s;
+}
+
+function refreshFooterTime(elementId) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    var real = new Date();
+    var realUtc = formatInTZ(real, 'UTC');
+    var realHkt = formatInTZ(real, 'Asia/Hong_Kong');
+    el.textContent = FOOTER_TIME_LABEL_REAL + ' ' + realUtc + ' (UTC) / ' + realHkt + ' (HKT)';
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     refreshAllNodes();
     loadSyncStatus();
     loadSyncHistory();
     loadTasks();
+    if (document.getElementById('footer-time')) {
+        refreshFooterTime('footer-time');
+    }
     
     // Bind button click events (direct binding only to avoid duplicate triggers)
     setTimeout(function() {
@@ -270,6 +299,31 @@ function formatTime(timeStr) {
     });
 }
 
+// Format time as UTC / HKT for Last Run column (backend sends UTC)
+function formatTimeUtcHkt(timeStr) {
+    if (!timeStr) return 'Never run';
+    // Ensure UTC: ISO without Z is parsed as local in JS, so normalize to UTC
+    const s = timeStr.endsWith('Z') || timeStr.includes('+') ? timeStr : timeStr + 'Z';
+    const date = new Date(s);
+    if (isNaN(date.getTime())) return timeStr;
+    const pad = (n) => String(n).padStart(2, '0');
+    const utcY = date.getUTCFullYear();
+    const utcM = date.getUTCMonth() + 1;
+    const utcD = date.getUTCDate();
+    const utcH = date.getUTCHours();
+    const utcMin = date.getUTCMinutes();
+    const utcStr = `${utcY}/${pad(utcM)}/${pad(utcD)} ${pad(utcH)}:${pad(utcMin)} UTC`;
+    // HKT = UTC+8
+    const hktDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    const hktY = hktDate.getUTCFullYear();
+    const hktM = hktDate.getUTCMonth() + 1;
+    const hktD = hktDate.getUTCDate();
+    const hktH = hktDate.getUTCHours();
+    const hktMin = hktDate.getUTCMinutes();
+    const hktStr = `${hktY}/${pad(hktM)}/${pad(hktD)} ${pad(hktH)}:${pad(hktMin)} HKT`;
+    return `${utcStr} / ${hktStr}`;
+}
+
 // Format uptime
 function formatUptime(seconds) {
     if (!seconds) return '-';
@@ -298,11 +352,12 @@ async function loadTasks() {
         
         // Add header row
         const header = `
-            <div style="padding: 8px 0; border-bottom: 2px solid #30363d; display: grid; grid-template-columns: 180px 100px 1fr 200px 100px; align-items: center; gap: 12px; font-weight: 600; color: #8b949e; font-size: 11px;">
+            <div style="padding: 8px 0; border-bottom: 2px solid #30363d; display: grid; grid-template-columns: 180px 100px 1fr 1fr 1fr 100px; align-items: center; gap: 12px; font-weight: 600; color: #8b949e; font-size: 11px;">
                 <div>Task Name</div>
                 <div>Status</div>
                 <div>Schedule</div>
-                <div>Last Run</div>
+                <div style="min-width:0;">Notes</div>
+                <div style="min-width:0;">Last Run</div>
                 <div style="justify-self: end;">Action</div>
             </div>
         `;
@@ -316,16 +371,18 @@ async function loadTasks() {
                 'failed': 'Failed',
             }[statusClass] || statusClass;
             
-            const lastRun = task.last_run_time ? formatTime(task.last_run_time) : 'Never run';
+            const lastRun = formatTimeUtcHkt(task.last_run_time);
             const schedule = task.schedule || 'Not scheduled';
+            const notes = task.notes || '—';
             const isRunning = statusClass === 'running';
             
             return `
-                <div style="padding: 8px 0; border-bottom: 1px solid #21262d; display: grid; grid-template-columns: 180px 100px 1fr 200px 100px; align-items: center; gap: 12px;">
+                <div style="padding: 8px 0; border-bottom: 1px solid #21262d; display: grid; grid-template-columns: 180px 100px 1fr 1fr 1fr 100px; align-items: center; gap: 12px;">
                     <strong style="color: #f0f6fc; white-space: nowrap;">${task.name}</strong>
                     <span class="sync-status ${statusClass}" style="font-size: 12px; white-space: nowrap;">${statusText}</span>
                     <span style="color: #8b949e; font-size: 11px;">${schedule}</span>
-                    <span style="color: #8b949e; font-size: 11px; white-space: nowrap;">${lastRun}</span>
+                    <span style="color: #8b949e; font-size: 11px; min-width:0; text-align: left;">${notes}</span>
+                    <span style="color: #8b949e; font-size: 11px; min-width:0;">${lastRun}</span>
                     <button class="btn btn-sm" onclick="triggerSingleTask('${task.name}', this)" 
                             ${isRunning ? 'disabled' : ''} 
                             style="background: ${isRunning ? '#21262d' : '#1f6feb'}; color: #fff; padding: 4px 12px; font-size: 11px; border: none; border-radius: 4px; cursor: ${isRunning ? 'not-allowed' : 'pointer'}; white-space: nowrap; justify-self: end;">
@@ -777,6 +834,46 @@ async function confirmClearDatabase() {
 // ============================================================================
 // Symbol Info Query Functions
 // ============================================================================
+
+// Query all symbols (GET /api/dms/symbols)
+async function queryAllSymbols() {
+    const container = document.getElementById('symbol-info-container');
+    const btn = document.getElementById('btn-all-symbols');
+    if (!container) return;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Loading...';
+    }
+    container.innerHTML = '<div class="empty-state">Loading symbols...</div>';
+    try {
+        const response = await fetch('/api/dms/symbols');
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ detail: response.statusText }));
+            throw new Error(err.detail || err.message || 'HTTP ' + response.status);
+        }
+        const data = await response.json();
+        const symbols = data.symbols || [];
+        const count = symbols.length;
+        const listText = symbols.length ? symbols.join(', ') : '(none)';
+        container.innerHTML = `
+            <div style="padding: 12px 16px; background: #161b22; border: 1px solid #21262d; border-radius: 6px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <span style="color: #c9d1d9; font-weight: 600;">All Symbols (from task config)</span>
+                    <span style="color: #8b949e; font-size: 12px;">Total: ${count}</span>
+                </div>
+                <div style="max-height: 200px; overflow-y: auto; font-size: 12px; color: #8b949e; font-family: monospace; white-space: pre-wrap; word-break: break-all;">${listText}</div>
+            </div>
+        `;
+    } catch (e) {
+        container.innerHTML = `<div class="empty-state" style="color: #f85149;">Error: ${e.message}</div>`;
+        console.error('Failed to query all symbols:', e);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '📋 All Symbols';
+        }
+    }
+}
 
 // Query symbol information
 async function querySymbolInfo() {

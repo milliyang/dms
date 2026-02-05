@@ -1,7 +1,7 @@
 """
-Data Writer Manager
+Data writer manager: manages underlying Writer (e.g. InfluxDB); unified write interface, incremental write, latest-date query.
 
-Manages underlying Writer instance (e.g. InfluxDB); unified write interface, incremental write, and latest-date query.
+Used for: DMS and tasks write path; supports type="influxdb1"; connection created in _load_writer.
 
 Classes:
     DataWriter  Writer manager
@@ -14,8 +14,8 @@ DataWriter methods:
     .get_latest_date(symbol, interval) -> Optional[datetime]  Latest data date for symbol+interval
     .clear_database() -> bool                       Clear current DB (dangerous)
 
-Config:
-    Constructor: writer_config e.g. {"type": "influxdb1", "host", "port", "database", ...}. Supports type="influxdb1"; connection created in _load_writer.
+DataWriter features:
+    - Constructor: writer_config e.g. {"type": "influxdb1", "host", "port", "database", ...}
 """
 
 import logging

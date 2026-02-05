@@ -1,7 +1,7 @@
 """
-Data Fetcher Manager
+Data fetcher manager: manages multiple sources (e.g. yfinance); unified fetch interface and primary fetcher selection.
 
-Manages multiple data sources (e.g. yfinance); unified fetch interface and primary fetcher selection.
+Used for: tasks fetch history; supports yfinance from fetchers_config; futu placeholder not implemented.
 
 Classes:
     DataFetcher  Fetcher manager
@@ -13,8 +13,8 @@ DataFetcher methods:
     .primary -> Optional[Fetcher]                  Primary fetcher
     .fetch_history(symbol, start, end, interval, fetcher_name=None) -> Optional[DataFrame]  Fetch history
 
-Config:
-    Constructor: fetchers_config e.g. {"yfinance": {"enabled": True, "rate_limit": 0.5, ...}}. Supports yfinance; futu placeholder not implemented.
+DataFetcher features:
+    - Constructor: fetchers_config e.g. {"yfinance": {"enabled": True, "rate_limit": 0.5, ...}}
 """
 
 import logging

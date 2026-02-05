@@ -13,7 +13,11 @@
             <img src="/static/icon-database.svg" alt="Database" style="width: 24px; height: 24px; vertical-align: middle;">
             DMS - Data Maintenance Service
         </h1>
-        <div id="nodes-summary" style="color: #8b949e; font-size: 12px;">(Loading...)</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span id="nodes-summary" style="color: #8b949e; font-size: 12px;">(Loading...)</span>
+            <span id="user-info" style="color: #8b949e; font-size: 12px;"></span>
+            <a href="#" id="nav-logout" style="color: #58a6ff; font-size: 12px; text-decoration: none;">Log out</a>
+        </div>
     </div>
 
     <div class="grid">
@@ -79,6 +83,7 @@
                     <option value="1m">Minute (1m)</option>
                 </select>
                 <button class="btn btn-primary" onclick="querySymbolInfo()">🔍 Query</button>
+                <button class="btn btn-secondary" onclick="queryAllSymbols()" id="btn-all-symbols">📋 All Symbols</button>
             </div>
             <div id="symbol-info-container">
                 <div class="empty-state">Enter a symbol and click Query to check database information</div>
@@ -98,6 +103,8 @@
             </div>
         </div>
     </div>
+
+    <div id="footer-time" class="footer-time"></div>
 
     <!-- Export Dialog -->
     <div id="export-dialog" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
@@ -172,6 +179,22 @@
         </div>
     </div>
 
+    <script>
+        (function() {
+            fetch('/api/user', { credentials: 'include' })
+                .then(r => r.json())
+                .then(data => {
+                    var el = document.getElementById('user-info');
+                    if (el && data.authenticated) el.textContent = data.username || '';
+                })
+                .catch(function() {});
+            document.getElementById('nav-logout').addEventListener('click', function(e) {
+                e.preventDefault();
+                fetch('/api/logout', { method: 'POST', credentials: 'include' })
+                    .then(function() { window.location.href = '/login'; });
+            });
+        })();
+    </script>
     <script src="/static/js/dms.js"></script>
 </body>
 </html>

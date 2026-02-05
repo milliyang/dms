@@ -24,8 +24,8 @@ echo "InfluxDB is up - executing command"\n\
 exec $cmd' > /wait-for-influxdb.sh && chmod +x /wait-for-influxdb.sh
 
 # Copy startup script first (before copying all files, to ensure it's included)
-COPY docker/start_dms.sh /start_dms.sh
-RUN chmod +x /start_dms.sh
+COPY docker/start_dms_service.sh /start_dms_service.sh
+RUN chmod +x /start_dms_service.sh
 
 # Copy application code to /app/dms
 COPY . /app/dms
@@ -36,4 +36,4 @@ WORKDIR /app/dms
 EXPOSE 11183
 
 # Start DMS (script will handle InfluxDB waiting based on WAIT_FOR_INFLUXDB env var)
-CMD ["/start_dms.sh"]
+CMD ["/start_dms_service.sh"]

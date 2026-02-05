@@ -13,6 +13,7 @@ dist/
 .gitignore
 docker/
 !docker/start_dms.sh
+!docker/start_dms_service.sh
 !docker/wait-for-influxdb.sh
 Dockerfile
 docker-compose.yml

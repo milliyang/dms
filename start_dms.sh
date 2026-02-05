@@ -19,9 +19,8 @@ else
 fi
 
 echo "Starting DMS (Data Maintenance Service)..."
-echo "Access URL: http://localhost:11183"
-echo "Web Interface: http://localhost:11183"
-echo "API Docs: http://localhost:11183/docs"
+echo "Web UI: http://localhost:11183"
+echo "API prefix: /api/dms  (see doc/api_reference.md)"
 echo ""
 
 # Use a single .pycache directory under project root (script already cd'd there)

@@ -22,7 +22,7 @@ MaintenanceTask interface:
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class MaintenanceTask(ABC):
@@ -106,7 +106,7 @@ class MaintenanceTask(ABC):
                 }
             
             self._status = "completed" if result.get("success", True) else "failed"
-            self._last_run_time = datetime.now()
+            self._last_run_time = datetime.now(timezone.utc)
             self._last_result = result
             
             return result
@@ -125,7 +125,7 @@ class MaintenanceTask(ABC):
             }
             
             self._status = "failed"
-            self._last_run_time = datetime.now()
+            self._last_run_time = datetime.now(timezone.utc)
             self._last_result = result
             
             return result

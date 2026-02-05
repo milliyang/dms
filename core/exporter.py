@@ -1,7 +1,7 @@
 """
-Data Exporter
+Data exporter: read from primary DB via DataReader; export to CSV/ZIP; single/multiple symbols and export dir management.
 
-Read from primary DB via DataReader and export to CSV/ZIP; single/multiple symbols and export directory management.
+Used for: DMS /api/dms/export endpoints; export_dir default "run/exports".
 
 Classes:
     DataExporter  Data exporter
@@ -13,8 +13,8 @@ DataExporter methods:
     .delete_export(filename) -> bool   Delete export file
     .get_export_path(filename) -> Optional[Path]   Get export file path
 
-Config:
-    Constructor: reader, export_dir (default "run/exports").
+DataExporter features:
+    - Constructor: reader, export_dir (default "run/exports")
 """
 
 import logging

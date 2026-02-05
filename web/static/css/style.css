@@ -279,3 +279,12 @@ h1 {
     background: rgba(88, 166, 255, 0.2);
     color: #58a6ff;
 }
+
+/* Footer time: monospace for aligned Real_ Time (match ZuiLow/PPT) */
+.footer-time {
+    font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: #8b949e;
+    letter-spacing: 0.02em;
+    margin-top: 12px;
+}
